@@ -78,7 +78,9 @@ Even without it, the model reaches **98.05% test accuracy** — see the confusio
 * `test.ipynb` showcases the dataset extraction & visualization, model training loop, loss evolution visualization using matplotlib, confusion matrix computation between the true labels and the predicted ones, a classification report to showcase precision, accuracy, recall and f1-score between the digit classes (from 0-9), and finally a live inference script to observe real sampling and prediction, results I personally find fascinating to say the least
 
 ## Credits
-![Yann LeCun should be here](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg)
+![Yann LeCun should be here](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
+Photographer: Jérémy Barande 
+[Photo license](https://creativecommons.org/licenses/by-sa/2.0/deed.en)
 All lecture material inspired by [Yann LeCun](https://en.wikipedia.org/wiki/Yann_LeCun) — [LeNet series](https://en.wikipedia.org/wiki/LeNet).
 
 [The Gradient-based learning applied to document recognition paper](https://ieeexplore.ieee.org/document/726791/)
