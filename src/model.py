@@ -67,7 +67,7 @@ class LeNet_5(nn.Module):
 # Observation: nn.Linear layers don't know how to work with 2D/3D structures (channels, height, weight)
     def forward(self, x):
         # We define the Scaled Tanh activation function as the activation function for the convolutional layers, as per the original LeNet-5 paper.
-        scaled_tanh = lambda x: 1.7159 * torch.tanh((2/3 / 3.0) * x)
+        scaled_tanh = lambda x: 1.7159 * torch.tanh((2/3) * x)
 
         x = scaled_tanh(self.conv1(x))
         x = self.avgpool1(x)
@@ -85,7 +85,7 @@ class LeNet_5(nn.Module):
 
         return output
 
-    def _lenet_rbf_loss(distances, target_labels):
+    def _lenet_rbf_loss(self, distances, target_labels):
         """Private method for RBF loss computation. Computes the loss based on the distances between the model's output and the target labels."""
         batch_size = distances.size(0)
         correct_class_distances = distances[torch.arange(batch_size), target_labels]

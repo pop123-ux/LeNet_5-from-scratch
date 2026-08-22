@@ -70,7 +70,9 @@ Both produce a correctly shaped tensor and both train; the resize is a deliberat
 
 The pipeline stops at `ToTensor()`, which scales pixels to `[0, 1]`. The paper went further and normalized so that background sits near **-0.1** and foreground near **1.175**, chosen to pair with the scaled tanh activation `1.7159 * tanh(...)` used throughout the network — roughly mean-zero inputs land in the steep, high-gradient part of the tanh curve rather than its flat tails. Adding a `transforms.Normalize` step is therefore the most faithful next change to make, and a natural experiment to run against the current result.
 
-Even without it, the model reaches **98.05% test accuracy** — see the confusion matrix and classification report in [`test.ipynb`](test.ipynb) for where the remaining errors concentrate.
+Even without it, the model reaches **98.31% test accuracy** — the weights in [`src/lenet5_model.pth`](src/lenet5_model.pth) reproduce that figure directly against the current `model.py`. See the confusion matrix and classification report in [`test.ipynb`](test.ipynb) for where the remaining errors concentrate.
+
+Training used the notebook's recipe: SGD at a constant `lr=0.001`, batch size 64, 45 epochs, seed 41. The paper's decreasing LR ladder implemented in `fit()` (0.05 → 0.0005) was also tried and reached only **83.17%** — the 0.05 opening steps are too large for this setup and the run never recovers, so the constant low rate is the better choice here.
 
 ## Notes
 
