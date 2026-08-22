@@ -12,8 +12,30 @@ class LeNetRBFSublayer(nn.Module):
         super(LeNetRBFSublayer, self).__init__()
         # 1. Create the fixed 7x12 bitmap templates for digits 0-9
         # In the 1998 paper, these weights were manually hardcoded and frozen
+        DIGIT_BITMAPS = torch.tensor([
+        # 0
+        [-1,-1, 1, 1, 1,-1,-1, -1, 1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1, -1, 1,-1,-1,-1, 1,-1, -1,-1, 1, 1, 1,-1,-1],
+        # 1
+        [-1,-1,-1, 1,-1,-1,-1, -1,-1, 1, 1,-1,-1,-1, -1, 1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1, 1, 1, 1, 1, 1,-1],
+        # 2
+        [-1, 1, 1, 1, 1, 1,-1,  1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1, 1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1, 1,-1,-1,-1,-1, -1, 1,-1,-1,-1,-1,-1,  1,-1,-1,-1,-1,-1,-1,  1,-1,-1,-1,-1,-1,-1,  1, 1, 1, 1, 1, 1, 1],
+        # 3
+        [ 1, 1, 1, 1, 1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1, 1,-1,-1, -1,-1, 1, 1,-1,-1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1, 1,-1, -1, 1, 1, 1, 1, 1,-1],
+        # 4
+        [-1,-1,-1,-1, 1,-1,-1, -1,-1,-1, 1, 1,-1,-1, -1,-1, 1,-1, 1,-1,-1, -1, 1,-1,-1, 1,-1,-1,  1,-1,-1,-1, 1,-1,-1,  1,-1,-1,-1, 1,-1,-1,  1, 1, 1, 1, 1, 1, 1, -1,-1,-1,-1, 1,-1,-1, -1,-1,-1,-1, 1,-1,-1, -1,-1,-1,-1, 1,-1,-1, -1,-1,-1,-1, 1,-1,-1],
+        # 5
+        [ 1, 1, 1, 1, 1, 1, 1,  1,-1,-1,-1,-1,-1,-1,  1,-1,-1,-1,-1,-1,-1,  1, 1, 1, 1, 1,-1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1, 1,-1, -1, 1, 1, 1, 1, 1,-1],
+        # 6
+        [-1,-1, 1, 1, 1, 1,-1, -1, 1,-1,-1,-1,-1,-1,  1,-1,-1,-1,-1,-1,-1,  1,-1, 1, 1, 1,-1,-1,  1, 1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1, 1,-1, -1, 1,-1,-1,-1, 1,-1, -1,-1, 1, 1, 1,-1,-1],
+        # 7
+        [ 1, 1, 1, 1, 1, 1, 1, -1,-1,-1,-1,-1, 1,-1, -1,-1,-1,-1, 1,-1,-1, -1,-1,-1,-1, 1,-1,-1, -1,-1,-1, 1,-1,-1,-1, -1,-1, 1,-1,-1,-1,-1, -1,-1, 1,-1,-1,-1,-1, -1, 1,-1,-1,-1,-1,-1, -1, 1,-1,-1,-1,-1,-1, -1, 1,-1,-1,-1,-1,-1, -1, 1,-1,-1,-1,-1,-1],
+        # 8
+        [-1,-1, 1, 1, 1,-1,-1, -1, 1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1,-1, 1, -1, 1,-1,-1,-1, 1,-1, -1,-1, 1, 1, 1,-1,-1, -1, 1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1, -1, 1,-1,-1,-1, 1,-1, -1,-1, 1, 1, 1,-1,-1],
+        # 9
+        [-1,-1, 1, 1, 1,-1,-1, -1, 1,-1,-1,-1, 1,-1,  1,-1,-1,-1,-1,-1, 1,  1,-1,-1,-1,-1,-1, 1, -1, 1,-1,-1,-1, 1, 1, -1,-1, 1, 1, 1,-1, 1, -1,-1,-1,-1,-1,-1, 1, -1,-1,-1,-1,-1,-1, 1, -1,-1,-1,-1,-1, 1,-1, -1, 1,-1,-1,-1, 1,-1, -1,-1, 1, 1, 1,-1,-1]
+        ], dtype=torch.float32)
         # We initialize them here as standard parameters (shape: 10 classes, 84 features)
-        self.centers = nn.Parameter(torch.randn(num_classes, in_features), requires_grad=False)
+        self.centers = nn.Parameter(DIGIT_BITMAPS, requires_grad=False)
 
     def forward(self, x):
         # x shape: [batch_size, 84]
@@ -94,6 +116,8 @@ class LeNet_5(nn.Module):
         """Private method for RBF loss computation. Computes the loss based on the distances between the model's output and the target labels."""
         batch_size = distances.size(0)
         correct_class_distances = distances[torch.arange(batch_size), target_labels]
+        # LeCun penalty term to prevent centers from pulling completely to zero
+        # Formula: log( e^-D_k + sum(e^-D_j) ) where D_k is the distance to the correct class and D_j are distances to all classes
         penalty = torch.logsumexp(-distances, dim=1)
         return torch.mean(correct_class_distances + penalty)
 
@@ -102,16 +126,16 @@ class LeNet_5(nn.Module):
         self.train()  # Set the model to training mode
         for epoch in range(epochs):
             """The learning rate schedule is based on the original LeNet-5 paper, which suggests a decreasing learning rate over epochs to ensure convergence."""
-            if epoch < 3:
-                lr = 0.05
-            elif epoch < 9:
-                lr = 0.01
-            elif epoch < 13:
-                lr = 0.005
-            elif epoch < 17:
-                lr = 0.001
-            elif epoch < 21:
+            if epoch < 2:
                 lr = 0.0005
+            elif epoch < 5:
+                lr = 0.0002
+            elif epoch < 8:
+                lr = 0.0001
+            elif epoch < 12:
+                lr = 0.00005
+            else:
+                lr = 0.00001
             optimizer = torch.optim.SGD(self.parameters(), lr=lr)
 
             running_loss = 0.0
