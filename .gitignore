@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MNIST — torchvision re-downloads this on first run (download=True),
+# so there is no reason to carry ~64 MB of IDX binaries in the repo.
+data/
+
+# Stray checkpoint: model.save() writes a bare filename, so it lands in the
+# current working directory rather than src/. Ignore the root-level copy so it
+# can't be committed by accident; the real weights live at src/lenet5_model.pth.
+/lenet5_model.pth
