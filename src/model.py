@@ -61,7 +61,9 @@ class LeNet_5(nn.Module):
         # We will write this the modern way as a basic nn.Linear layer with 120 neurons;
         # Output size of previous pooling was 5x5x16 (which equals exactly 400 total values)
         # We map these 400 flatenned inputs to 120 independent neurons.
-        self.c5 = nn.Linear(16 * 5 * 5, 120)
+        self.c5 = nn.Conv2d(in_channels=16, out_channels=120, kernel_size=5, stride=1, padding=0)
+        # we will write this the modern way as a basic nn.Linear layer with 84 neurons; Output size of previous convolution was 1x1x120 (which equals exactly 120 total values); We map these 120 flatenned inputs to 84 independent neurons.
+        self.f6 = nn.Linear(in_features=120, out_features=84)
         # The custom rbf layer implemented from the original paper
         self.rbf_layer = LeNetRBFSublayer(in_features=120, num_classes=10)
 # Observation: nn.Linear layers don't know how to work with 2D/3D structures (channels, height, weight)
@@ -79,7 +81,10 @@ class LeNet_5(nn.Module):
 
         # C5 (convolutional layer) pass + Activation Function
         x = scaled_tanh(self.c5(x)) # Dimension: [batch_size, 120]
-
+        # F6 (fully connected layer) pass + Activation Function
+        x = torch.flatten(x, start_dim=1) # Dimension: [batch_size, 120] - flatten the (batch_size, 1, 1) to (batch_size, 120) for the next layer
+        # Apply fully connected layer and activation function
+        x = self.f6(x)
         # RBF pass through (also does the reduction to the 10 classes 0-9, so it kind of also acts as a nn.Linear)
         output = self.rbf_layer(x)
 
