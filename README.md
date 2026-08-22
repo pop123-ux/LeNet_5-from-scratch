@@ -81,6 +81,7 @@ Even without it, the model reaches **98.05% test accuracy** — see the confusio
 ![Yann LeCun should be here](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
 Photographer: Jérémy Barande 
 [Photo license](https://creativecommons.org/licenses/by-sa/2.0/deed.en)
+
 All lecture material inspired by [Yann LeCun](https://en.wikipedia.org/wiki/Yann_LeCun) — [LeNet series](https://en.wikipedia.org/wiki/LeNet).
 
 [The Gradient-based learning applied to document recognition paper](https://ieeexplore.ieee.org/document/726791/)
