@@ -25,6 +25,61 @@ The point of the series is to go in more depth into the PyTorch framework and un
 │   └── test_visual_predictions.png # model inference snippet output example
 ```
 
+## The architecture
+
+Every layer is written out rather than pulled from a library, and the shapes are forced by the 32×32 input:
+
+| Layer | Operation | Output | Trainable params |
+| --- | --- | --- | --- |
+| Input | 32×32 grayscale | `1 × 32 × 32` | — |
+| **C1** | `Conv2d(1→6, 5×5)` + scaled tanh | `6 × 28 × 28` | 156 |
+| **S2** | `AvgPool2d(2×2, stride 2)` | `6 × 14 × 14` | 0 |
+| **C3** | `Conv2d(6→16, 5×5)` + scaled tanh | `16 × 10 × 10` | 2,416 |
+| **S4** | `AvgPool2d(2×2, stride 2)` | `16 × 5 × 5` | 0 |
+| **C5** | `Conv2d(16→120, 5×5)` + scaled tanh | `120 × 1 × 1` | 48,120 |
+| **F6** | `Linear(120→84)` + scaled tanh | `84` | 10,164 |
+| **Output** | 10 Euclidean RBF units | `10` distances | 0 (fixed) |
+| | | **Total** | **60,856** |
+
+C5 is written as a convolution rather than a linear layer on purpose. Its 5×5 kernel exactly covers the 5×5 input, so it collapses to 120×1×1 — mathematically fully connected, but keeping it a `Conv2d` makes that coincidence visible instead of hiding it behind a `flatten`.
+
+The activation throughout is the paper's scaled hyperbolic tangent, `1.7159 · tanh(⅔x)`. The constants aren't arbitrary: they place the function's most useful gradient where normalized inputs actually live, and give `f(±1) = ±1`.
+
+### The output layer has no softmax
+
+This is the part of LeNet-5 that looks strangest to modern eyes, and it's the reason F6 has exactly **84** units.
+
+Each of the ten output units is a **Euclidean radial basis function** holding a fixed 84-dimensional centre — and that centre is a stylized **7 × 12 bitmap** of the digit it represents (7 × 12 = 84), with `+1` for ink and `-1` for background. The unit outputs the squared distance between F6's activation and its template:
+
+```
+..###..  ...#...  .#####.  .#####.  ....##.  #######  ..####.  #######  ..###..  ..###..
+.#...#.  ..##...  #.....#  #.....#  ...#.#.  #......  .#.....  .....#.  .#...#.  .#...#.
+#.....#  .#.#...  ......#  ......#  ..#..#.  #......  #......  ....#..  #.....#  #.....#
+#.....#  ...#...  .....#.  .....#.  .#...#.  #####..  #......  ....#..  .#...#.  #.....#
+#.....#  ...#...  ....#..  ..###..  #....#.  .....#.  #####..  ...#...  ..###..  .#...#.
+   0        1        2        3        4        5        6        7        8        9
+```
+
+The templates are **never trained** — they're registered as a buffer, so no optimizer can reach them. Training instead pushes F6 to *draw* the right bitmap. Three consequences follow:
+
+* **A small output means a confident prediction**, so inference uses `torch.argmin`, not `argmax`.
+* **The network is interpretable by construction** — you can read F6's 84 activations back out as a 7×12 picture and see what the model thinks it is looking at.
+* **The squash after F6 matters.** It bounds activations to ±1.7159, the same scale as the ±1 templates they're compared against.
+
+The loss follows the paper's MAP criterion — the distance to the correct class, plus `log Σ e^(−distance)` over all classes. The second term stops the network from cheating by collapsing every distance to zero. There's a neat result buried in it: that expression is *exactly* cross-entropy over the negated distances, so the paper arrives at the standard objective from a completely different direction.
+
+### Fidelity to the paper
+
+The goal is a faithful reimplementation, not a high score. The paper's own parameter table sums to **exactly 60,000**, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
+
+| | This repo | Paper | Δ |
+| --- | --- | --- | --- |
+| C3 connectivity | fully connected to all 6 S2 maps | 60 of 96 links via Table I | +900 |
+| S2 / S4 | plain average pooling | trainable coefficient + bias, then squashed | −44 |
+| | | | **+856** |
+
+Also simplified: optimization is plain SGD rather than the paper's stochastic diagonal Levenberg-Marquardt, and the loss omits the small positive constant `j` inside the log. The learning-rate ladder in `fit()` *does* follow the paper — 0.0005 for two passes, then 0.0002, 0.0001, 0.00005 and 0.00001.
+
 ## The MNIST dataset
 ![MNIST example samples should be here](IMAGES/MNIST_dataset_example.png)
 
@@ -44,7 +99,8 @@ The classes are close to balanced but not exactly — in the training split digi
 ```python
 my_transform = transforms.Compose([
     transforms.Resize((32, 32)),  # Changes 28x28 to 32x32
-    transforms.ToTensor()
+    transforms.ToTensor(),
+    transforms.Normalize(...)     # see "A note on normalization" below
 ])
 ```
 
@@ -57,7 +113,7 @@ Labels batch shape:  torch.Size([64])
 
 ### Why 32×32 and not 28×28
 
-This is the one preprocessing step LeNet-5 genuinely requires. Trace the spatial dimensions through the architecture: C1's 5×5 valid convolution takes 32 → 28, S2 halves it to 14, C3's 5×5 takes 14 → 10, S4 halves it to 5. That final 5×5×16 = 400 is what flattens into C5's 400 → 120 linear layer. **Feed a 28×28 image instead and the chain ends at 4×4×16 = 256**, and the flatten no longer matches `nn.Linear(16 * 5 * 5, 120)`. The 32×32 input is not an aesthetic choice — the layer widths in `model.py` are derived from it.
+This is the one preprocessing step LeNet-5 genuinely requires. Trace the spatial dimensions through the architecture: C1's 5×5 valid convolution takes 32 → 28, S2 halves it to 14, C3's 5×5 takes 14 → 10, S4 halves it to 5. That final 5×5 is exactly what C5's 5×5 kernel needs to collapse the map to 120×1×1. **Feed a 28×28 image instead and the chain ends at 4×4**, C5's kernel no longer fits its input, and the forward pass fails outright. The 32×32 input is not an aesthetic choice — every layer width in `model.py` is derived from it.
 
 Two ways to get there, and this repo takes the simpler one:
 
@@ -68,11 +124,22 @@ Both produce a correctly shaped tensor and both train; the resize is a deliberat
 
 ### A note on normalization
 
-The pipeline stops at `ToTensor()`, which scales pixels to `[0, 1]`. The paper went further and normalized so that background sits near **-0.1** and foreground near **1.175**, chosen to pair with the scaled tanh activation `1.7159 * tanh(...)` used throughout the network — roughly mean-zero inputs land in the steep, high-gradient part of the tanh curve rather than its flat tails. Adding a `transforms.Normalize` step is therefore the most faithful next change to make, and a natural experiment to run against the current result.
+`ToTensor()` alone scales pixels to `[0, 1]`, which is not what the network is tuned for. The paper normalizes so that background sits at **−0.1** and foreground at **1.175** — values chosen so the input has roughly zero mean and unit variance, which puts it in the steep, high-gradient part of the `1.7159 · tanh(⅔x)` curve rather than out on its flat tails. Since the RBF templates are ±1, keeping the whole signal path on a comparable scale matters more here than in a network that ends in a softmax.
 
-Even without it, the model reaches **98.31% test accuracy** — the weights in [`src/lenet5_model.pth`](src/lenet5_model.pth) reproduce that figure directly against the current `model.py`. See the confusion matrix and classification report in [`test.ipynb`](test.ipynb) for where the remaining errors concentrate.
+To reproduce the paper's exact endpoints:
 
-Training used the notebook's recipe: SGD at a constant `lr=0.001`, batch size 64, 45 epochs, seed 41. The paper's decreasing LR ladder implemented in `fit()` (0.05 → 0.0005) was also tried and reached only **83.17%** — the 0.05 opening steps are too large for this setup and the run never recovers, so the constant low rate is the better choice here.
+```python
+transforms.Normalize(mean=[0.078431], std=[0.784314])  # maps 0 -> -0.1, 1 -> 1.175
+```
+
+The notebook normalizes to approximately zero mean and unit variance; see [`test.ipynb`](test.ipynb) for the constants actually used.
+
+### Results
+
+<!-- TODO: fill in once the current training run finishes -->
+Test accuracy, the confusion matrix and the per-class classification report are produced by [`test.ipynb`](test.ipynb), and the weights that reproduce them are in [`src/lenet5_model.pth`](src/lenet5_model.pth).
+
+A faithful reimplementation is the goal here rather than a leaderboard number, so expect this to land below what a modern small CNN reaches on MNIST — the paper itself reports 99.05%, using an optimizer and a connectivity scheme this repo deliberately simplifies.
 
 ## Notes
 
