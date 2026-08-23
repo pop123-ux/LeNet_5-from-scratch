@@ -70,7 +70,7 @@ The loss follows the paper's MAP criterion — the distance to the correct class
 
 ### Fidelity to the paper
 
-The goal is a faithful reimplementation, not a high score. The paper's own parameter table sums to **exactly 60,000**, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
+The goal is a reimplementation that merges modern techniques and old school methods, not a high score. The paper's own parameter table sums to **exactly 60,000**, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
 
 | | This repo | Paper | Δ |
 | --- | --- | --- | --- |
@@ -142,7 +142,7 @@ Both target roughly zero mean and unit variance; the paper simply pins the two e
 
 ### Results
 
-![Sample predictions](test_visual_predictions.png)
+![Sample predictions](IMAGES/test_visual_predictions.png)
 
 **98.59% test accuracy** on the 10,000-image test set, trained with the notebook's loop over the full 60,000-image training split.
 
