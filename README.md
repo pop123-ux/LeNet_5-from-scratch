@@ -157,14 +157,22 @@ For context, the paper reports 99.05% on MNIST — reached with the trainable su
 
 ## Credits
 ![Yann LeCun should be here](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
-Photographer: Jérémy Barande 
-[Photo license](https://creativecommons.org/licenses/by-sa/2.0/deed.en)
 
 All lecture material inspired by [Yann LeCun](https://en.wikipedia.org/wiki/Yann_LeCun) — [LeNet series](https://en.wikipedia.org/wiki/LeNet).
 
 [The Gradient-based learning applied to document recognition paper](https://ieeexplore.ieee.org/document/726791/)
 
 [See the original Levenberg-Marquardt algorithm, which was implemented in the original LeCun-5](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm)
+
+## Image Credits
+
+Some visual assets used in this repository are sourced from Wikimedia Commons:
+
+- **Yann LeCun photograph** — Jérémy Barande, licensed under [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/).
+- **LeNet-5 architecture image** — Zhang, Aston and Lipton, Zachary C. and Li, Mu and Smola, Alexander J, licensed under [CC BY-SA 4.0](https://en.wikipedia.org/wiki/en:Creative_Commons)
+- **MNIST dataset example image** — Suvanjanprasai, licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
+
+These third-party images are **not covered by this repository's MIT License**. Their respective copyright and licensing terms continue to apply.
 
 ## 🔗 More
 
