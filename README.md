@@ -63,14 +63,14 @@ Each of the ten output units is a **Euclidean radial basis function** holding a 
 The templates are **never trained** — they're registered as a buffer, so no optimizer can reach them. Training instead pushes F6 to *draw* the right bitmap. Three consequences follow:
 
 * **A small output means a confident prediction**, so inference uses `torch.argmin`, not `argmax`.
-* **The network is interpretable by construction** — you can read F6's 84 activations back out as a 7×12 picture and see what the model thinks it is looking at.
+* The 84-dimensional F6 representation can be reshaped into the same 7×12 layout used by the fixed output templates, giving a simple visual representation of the representation the network is learning.
 * **The squash after F6 matters.** It bounds activations to ±1.7159, the same scale as the ±1 templates they're compared against.
 
 The loss follows the paper's MAP criterion — the distance to the correct class, plus `log Σ e^(−distance)` over all classes. The second term stops the network from cheating by collapsing every distance to zero. There's a neat result buried in it: that expression is *exactly* cross-entropy over the negated distances, so the paper arrives at the standard objective from a completely different direction.
 
 ### Fidelity to the paper
 
-The goal is a reimplementation that merges modern techniques and old school methods, not a high score. The paper's own parameter table sums to **exactly 60,000**, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
+The goal is a learning-oriented reimplementation that combines the original LeNet-5 ideas with modern PyTorch infrastructure, not a high score. The paper's own parameter table sums to **exactly 60,000**, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
 
 | | This repo | Paper | Δ |
 | --- | --- | --- | --- |
@@ -156,13 +156,13 @@ For context, the paper reports 99.05% on MNIST — reached with the trainable su
 * `test.ipynb` showcases the dataset extraction & visualization, model training loop, loss evolution visualization using matplotlib, confusion matrix computation between the true labels and the predicted ones, a classification report to showcase precision, accuracy, recall and f1-score between the digit classes (from 0-9), and finally a live inference script to observe real sampling and prediction, results I personally find fascinating to say the least
 
 ## Credits
-![Yann LeCun should be here](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
+![Yann LeCun should be here!](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
 
 All lecture material inspired by [Yann LeCun](https://en.wikipedia.org/wiki/Yann_LeCun) — [LeNet series](https://en.wikipedia.org/wiki/LeNet).
 
-[The Gradient-based learning applied to document recognition paper](https://ieeexplore.ieee.org/document/726791/)
+- LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). [Gradient-based learning applied to document recognition](https://ieeexplore.ieee.org/document/726791/).
 
-[See the original Levenberg-Marquardt algorithm, which was implemented in the original LeCun-5](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm)
+[See the original Levenberg-Marquardt algorithm, which was implemented in the original LeNet-5](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm)
 
 ## Image Credits
 
