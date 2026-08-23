@@ -169,8 +169,8 @@ All lecture material inspired by [Yann LeCun](https://en.wikipedia.org/wiki/Yann
 Some visual assets used in this repository are sourced from Wikimedia Commons:
 
 - **Yann LeCun photograph** — Jérémy Barande, licensed under [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/).
-- **LeNet-5 architecture image** — Zhang, Aston and Lipton, Zachary C. and Li, Mu and Smola, Alexander J, licensed under [CC BY-SA 4.0](https://en.wikipedia.org/wiki/en:Creative_Commons)
-- **MNIST dataset example image** — Suvanjanprasai, licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
+- **LeNet-5 architecture image** — Zhang, Aston; Lipton, Zachary C.; Li, Mu; Smola, Alexander J. Originally from [Dive into Deep Learning](https://github.com/d2l-ai/d2l-en). Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). [Wikimedia Commons source](https://commons.wikimedia.org/wiki/File:LeNet-5_architecture.svg).
+- **MNIST dataset example image** — Suvanjanprasai. Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). [Wikimedia Commons source](https://commons.wikimedia.org/wiki/File:MNIST_dataset_example.png).
 
 These third-party images are **not covered by this repository's MIT License**. Their respective copyright and licensing terms continue to apply.
 
