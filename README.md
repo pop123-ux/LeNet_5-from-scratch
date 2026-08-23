@@ -144,7 +144,7 @@ Both target roughly zero mean and unit variance; the paper simply pins the two e
 
 ![Sample predictions](IMAGES/test_visual_predictions.png)
 
-**98.59% test accuracy** on the 10,000-image test set, trained with the notebook's loop over the full 60,000-image training split.
+**98.59% test accuracy** on the 10,000-image test set (in the included notebook run, other runs + custom seeding may deliver other values), trained with the notebook's loop over the full 60,000-image training split.
 
 The single accuracy figure is the least interesting output, though. [`test.ipynb`](test.ipynb) also produces a **confusion matrix** and a **per-class classification report** with precision, recall and F1 for each digit — worth reading given the class imbalance noted above, and given that the RBF templates make some confusions more likely than others: digits whose 7×12 bitmaps overlap heavily are exactly the pairs the model has the least margin between.
 
