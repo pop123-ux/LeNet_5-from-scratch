@@ -40,7 +40,7 @@ DIGIT_GLYPHS = {
 GLYPH_WIDTH, GLYPH_HEIGHT = 7, 12
 
 
-def build_digit_bitmaps(num_classes=10):
+def build_digit_bitmaps(num_classes=10): # A more visual recommendation by Claude
     """Turns the ASCII glyphs above into a (num_classes, 84) tensor of +1 / -1 values."""
     templates = []
     for digit in range(num_classes):
@@ -103,16 +103,6 @@ class LeNet_5(nn.Module):
     - Local Receptive Fields: Neurons look at small local patches of input
     - Weight Sharing: Filters use the same weights across the entire image to detect identical features anywhere
     - Subsampling: Pooling shrinks spatial size and adds shift invariance
-
-    Deliberate departures from the 1998 paper (this is a learning reimplementation,
-    not a 1:1 reproduction):
-    - S2/S4 use plain average pooling. The paper multiplies the 2x2 sum by a trainable
-      coefficient, adds a trainable bias and squashes the result (2 params per map).
-    - C3 is fully connected to all 6 S2 maps. The paper wires only 60 of the 96
-      possible links via its Table I, which breaks symmetry between the feature maps.
-    - Optimization is plain SGD rather than the paper's stochastic diagonal
-      Levenberg-Marquardt, though the learning-rate ladder in fit() follows the paper.
-    Closing the first two would bring the trainable count from 60,856 to the paper's 60,000.
     """
 
     def __init__(self) -> None:
@@ -249,12 +239,27 @@ class LeNet_5(nn.Module):
 
     def save(self, path=None):
         """Saves the model's state dictionary to a file."""
+        import os
         path = path or self.DEFAULT_WEIGHTS
+        # Ensure the directory exists before saving
+        dir_name = os.path.dirname(path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+
         torch.save(self.state_dict(), path)
         print(f"LeNet_5 model saved to {path}")
 
-    def load(self, path=None):
+    def load(self, path=None, device=None):
         """Loads the model's state dictionary from a file."""
         path = path or self.DEFAULT_WEIGHTS
-        self.load_state_dict(torch.load(path, map_location="cpu"))
-        print(f"LeNet_5 model loaded from {path}")
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            device = torch.device(device) # In the case a user inputs a device of choice
+
+        # Load the weights on the specified device (CPU, GPU, etc.)
+        state_dict = torch.load(path, map_location=device)
+        self.load_state_dict(state_dict)
+        self.to(device)
+
+        print(f"LeNet_5 model loaded from {path} onto {device}")
