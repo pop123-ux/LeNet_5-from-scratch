@@ -176,5 +176,6 @@ These third-party images are **not covered by this repository's MIT License**. T
 
 ## 🔗 More
 
-- Author: [@pop123-ux](https://github.com/pop123-ux)
+- Author: [Pop Alexandru](https://github.com/pop123-ux)
 - Medium write-ups: [medium.com/@Pop123](https://medium.com/@Pop123)
+- Hugging Face: [pop123ux](https://huggingface.co/pop123ux)
