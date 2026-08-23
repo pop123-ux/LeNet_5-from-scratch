@@ -258,7 +258,7 @@ class LeNet_5(nn.Module):
             device = torch.device(device) # In the case a user inputs a device of choice
 
         # Load the weights on the specified device (CPU, GPU, etc.)
-        state_dict = torch.load(path, map_location=device)
+        state_dict = torch.load(path, map_location=device, weights_only=True)
         self.load_state_dict(state_dict)
         self.to(device)
 
