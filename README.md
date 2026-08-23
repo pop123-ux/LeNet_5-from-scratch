@@ -70,7 +70,7 @@ The loss follows the paper's MAP criterion — the distance to the correct class
 
 ### Fidelity to the paper
 
-The goal is a learning-oriented reimplementation that combines the original LeNet-5 ideas with modern PyTorch infrastructure, not a high score. The paper's own parameter table sums to **exactly 60,000**, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
+The goal is a learning-oriented reimplementation that combines the original LeNet-5 ideas with modern PyTorch infrastructure, not a high score. The paper's own parameter table sums to **exactly 60,000**, being the original LeNet-5 parameter count reported for the particular architecture in the paper, which makes a useful checksum — this implementation sits at **60,856**, and the difference is entirely accounted for by two deliberate simplifications:
 
 | | This repo | Paper | Δ |
 | --- | --- | --- | --- |
