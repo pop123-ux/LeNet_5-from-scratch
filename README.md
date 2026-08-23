@@ -132,7 +132,7 @@ To reproduce the paper's exact endpoints:
 transforms.Normalize(mean=[0.078431], std=[0.784314])  # maps 0 -> -0.1, 1 -> 1.175
 ```
 
-[`test.ipynb`](test.ipynb) takes the equivalent route via the dataset's own statistics rather than the paper's fixed endpoints:
+[`test.ipynb`](test.ipynb) uses a fixed normalization chosen to approximately match the input scale used for the experiment:
 
 ```python
 transforms.Normalize(mean=[0.1], std=[0.278])  # maps 0 -> -0.36, 1 -> +3.24
