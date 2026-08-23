@@ -115,7 +115,7 @@ Labels batch shape:  torch.Size([64])
 
 This is the one preprocessing step LeNet-5 genuinely requires. Trace the spatial dimensions through the architecture: C1's 5×5 valid convolution takes 32 → 28, S2 halves it to 14, C3's 5×5 takes 14 → 10, S4 halves it to 5. That final 5×5 is exactly what C5's 5×5 kernel needs to collapse the map to 120×1×1. **Feed a 28×28 image instead and the chain ends at 4×4**, C5's kernel no longer fits its input, and the forward pass fails outright. The 32×32 input is not an aesthetic choice — every layer width in `model.py` is derived from it.
 
-Two ways to get there, and this repo takes the simpler one:
+I have justified two ways to get there:
 
 * **Resize** (used here) — `transforms.Resize((32, 32))` rescales the digit itself with bilinear interpolation, so the strokes are enlarged to fill the larger canvas.
 * **Pad** (the original paper) — centre the untouched 28×28 digit inside a 32×32 field of background pixels. LeCun's reasoning was that this keeps distinctive features like stroke endpoints and corners near the centre of the receptive field of the highest-level feature detectors, rather than pushed to the border where they are seen by fewer units.
@@ -137,9 +137,6 @@ The notebook normalizes to approximately zero mean and unit variance; see [`test
 ### Results
 
 <!-- TODO: fill in once the current training run finishes -->
-Test accuracy, the confusion matrix and the per-class classification report are produced by [`test.ipynb`](test.ipynb), and the weights that reproduce them are in [`src/lenet5_model.pth`](src/lenet5_model.pth).
-
-A faithful reimplementation is the goal here rather than a leaderboard number, so expect this to land below what a modern small CNN reaches on MNIST — the paper itself reports 99.05%, using an optimizer and a connectivity scheme this repo deliberately simplifies.
 
 ## Notes
 
@@ -154,6 +151,8 @@ Photographer: Jérémy Barande
 All lecture material inspired by [Yann LeCun](https://en.wikipedia.org/wiki/Yann_LeCun) — [LeNet series](https://en.wikipedia.org/wiki/LeNet).
 
 [The Gradient-based learning applied to document recognition paper](https://ieeexplore.ieee.org/document/726791/)
+
+[See the original Levenberg-Marquardt algorithm, which was implemented in the original LeCun-5](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm)
 
 ## 🔗 More
 
