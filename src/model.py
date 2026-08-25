@@ -92,9 +92,9 @@ class LeNet_5(nn.Module):
 
     1. Input: 32x32 pixel grayscale image
     2. C1 (Convolution): 5x5 filters, 6 feature maps, output size 28x28x6
-    3. S2 (Subsampling): 2x2 window, stride 2, output size 14x14x6
+    3. S2 (AvgPool): 2x2 window, stride 2, output size 14x14x6
     4. C3 (Convolution): 5x5 filters, 16 feature maps, output size 10x10x16
-    5. S4 (Subsampling): 2x2 window, stride 2, output size 5x5x16
+    5. S4 (AvgPool): 2x2 window, stride 2, output size 5x5x16
     6. C5 (Convolution): 5x5 filters over a 5x5 input, so it collapses to 120x1x1
     7. F6 (Fully Connected Layer): 84 neurons = the 7x12 RBF template size
     8. Output: 10 Euclidean RBF units returning distances, so predict with argmin
