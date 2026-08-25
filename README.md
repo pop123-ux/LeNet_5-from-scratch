@@ -7,22 +7,28 @@ The point of the series is to go in more depth into the PyTorch framework and un
 ## Layout
 
 ```
+├── IMAGES
+│   ├── Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg # photo of Yann LeCun    
+│   ├── LeNet-5_architecture.svg # image of the LeNet-5 architecture    
+│   ├── MNIST_dataset_example.png # image of MNIST dataset label examples
+│   └── test_visual_predictions.png # model inference snippet output example
+│
 ├── data/MNIST/raw (basic boilerplate torchvision MNIST import baseline)
 │   ├── ...    
 │   ├── ...    
 │   └── ...    
 ├── src/            # model initialization code + weights
 │   ├── lenet5_model.pth
-│   ├── model.py
+│   └── model.py
+│
+├── LICENSE # the MIT License of the project
+│
 ├── README.md           # the repository's showcase
 │
-├── test.ipynb # model training + loss visualization + confusion matrix & classification report computation + live inference snippet
+├── requirements.txt
 │
-├── IMAGES
-│   ├── Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg # photo of Yann LeCun    
-│   ├── LeNet-5_architecture.svg # image of the LeNet-5 architecture    
-│   ├── MNIST_dataset_example.png # image of MNIST dataset label examples
-│   └── test_visual_predictions.png # model inference snippet output example
+├── test.ipynb # model training + loss visualization + confusion matrix & classification report computation + live inference snippet
+
 ```
 
 ## The architecture
