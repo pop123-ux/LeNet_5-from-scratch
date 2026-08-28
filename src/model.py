@@ -4,10 +4,10 @@ The model is designed for grayscale images of size 32x32 pixels and outputs pred
 """
 
 import os
-
+from typing import Optional, Union, Tuple # Provides static type hinting to make code more readable, maintainable, and less prone to bugs in large-scale applications
 import torch
 import torch.nn as nn
-
+from torch.utils.data import DataLoader
 
 # In the 1998 paper the output RBF centers are not learned: each one is a stylized
 # 7x12 bitmap of the digit it represents, with +1 for ink and -1 for background.
@@ -40,7 +40,7 @@ DIGIT_GLYPHS = {
 GLYPH_WIDTH, GLYPH_HEIGHT = 7, 12
 
 
-def build_digit_bitmaps(num_classes=10): # A more visual recommendation by Claude
+def build_digit_bitmaps(num_classes: int = 10) -> torch.Tensor: # A more visual recommendation by Claude
     """Turns the ASCII glyphs above into a (num_classes, 84) tensor of +1 / -1 values."""
     templates = []
     for digit in range(num_classes):
@@ -49,7 +49,7 @@ def build_digit_bitmaps(num_classes=10): # A more visual recommendation by Claud
         for row in rows:
             assert len(row) == GLYPH_WIDTH, f"digit {digit}: row '{row}' is not {GLYPH_WIDTH} wide"
         templates.append([1.0 if pixel == "#" else -1.0 for row in rows for pixel in row])
-    return torch.tensor(templates, dtype=torch.float32)
+    return torch.tensor(templates, dtype=torch.float32) # [10, 84]
 
 
 class LeNetRBFSublayer(nn.Module):
@@ -60,7 +60,7 @@ class LeNetRBFSublayer(nn.Module):
     *confident* prediction, which is why inference uses argmin rather than argmax.
     """
 
-    def __init__(self, in_features=84, num_classes=10):
+    def __init__(self, in_features=84, num_classes=10) -> None:
         super(LeNetRBFSublayer, self).__init__()
         expected = GLYPH_WIDTH * GLYPH_HEIGHT
         assert in_features == expected, f"the paper's RBF centers are {expected}-dimensional, got {in_features}"
@@ -68,9 +68,9 @@ class LeNetRBFSublayer(nn.Module):
         # The centers are constants, not parameters - registering them as a buffer keeps
         # them in the state_dict and moves them with .to(device) while leaving them out
         # of .parameters(), so no optimizer can ever touch them.
-        self.register_buffer("centers", build_digit_bitmaps(num_classes))
+        self.register_buffer("centers", build_digit_bitmaps(num_classes)) # In PyTorch, self.register_buffer() is used to add a non-trainable tensor to a module's state
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x shape: [batch_size, 84]
         # self.centers shape: [10, 84]
 
@@ -122,7 +122,7 @@ class LeNet_5(nn.Module):
         # The custom rbf layer implemented from the original paper
         self.rbf_layer = LeNetRBFSublayer(in_features=84, num_classes=10)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor :
         # We define the Scaled Tanh activation function as the activation function for the convolutional layers, as per the original LeNet-5 paper.
         scaled_tanh = lambda x: 1.7159 * torch.tanh((2 / 3) * x)
 
@@ -147,7 +147,7 @@ class LeNet_5(nn.Module):
 
         return output                              # Dimension: [batch_size, 10] of distances
 
-    def _lenet_rbf_loss(self, distances, target_labels):
+    def _lenet_rbf_loss(self, distances: torch.Tensor, target_labels: torch.Tensor) -> torch.Tensor:
         """Private method for RBF loss computation. Computes the loss based on the distances between the model's output and the target labels."""
         batch_size = distances.size(0)
         correct_class_distances = distances[torch.arange(batch_size), target_labels]
@@ -159,13 +159,14 @@ class LeNet_5(nn.Module):
         penalty = torch.logsumexp(-distances, dim=1)
         return torch.mean(correct_class_distances + penalty)
 
-    def fit(self, train_loader, epochs=15):
+    def fit(self, train_loader: DataLoader, epochs: int = 15) -> None:
         """Trains the model using the custom RBF loss. Handles the training loop, including
         forward passes, loss computation, backward passes and optimizer steps."""
         self.train()  # Set the model to training mode
         optimizer = torch.optim.SGD(self.parameters(), lr=0.0005)
 
         for epoch in range(epochs):
+            print(f"Epoch: {epoch}")
             # The learning rate schedule is the one reported in the original LeNet-5 paper:
             # 0.0005 for the first two passes, then 0.0002, 0.0001, 0.00005 and 0.00001.
             if epoch < 2:
@@ -181,10 +182,10 @@ class LeNet_5(nn.Module):
             for group in optimizer.param_groups:
                 group["lr"] = lr
 
-            running_loss = 0.0
+            running_loss: float = 0.0
             for batch_idx, (inputs, labels) in enumerate(train_loader):
                 optimizer.zero_grad()  # Zero the gradients
-                outputs = self.forward(inputs)  # Forward pass
+                outputs = self(inputs)  # Forward pass
                 loss = self._lenet_rbf_loss(outputs, labels)  # Compute the custom RBF loss
 
                 loss.backward()  # Backward pass
@@ -193,12 +194,12 @@ class LeNet_5(nn.Module):
                 running_loss += loss.item()
 
                 if batch_idx % 100 == 0:
-                    print(f"Epoch: {epoch} | Batch: {batch_idx:03d} | LR: {lr} | Batch Loss: {loss.item():.4f}")
+                    print(f"Batch: {batch_idx:03d} | LR: {lr} | Batch Loss: {loss.item():.4f}")                    
 
             epoch_loss = running_loss / len(train_loader)
             print(f"Epoch {epoch} completed | Average Loss: {epoch_loss:.4f}")
 
-    def evaluate(self, test_loader, verbose=False):
+    def evaluate(self, test_loader: DataLoader, verbose: bool = False) -> float:
         """Evaluates the model on the test dataset and returns the accuracy."""
         self.eval()  # Set the model to evaluation mode
         correct = 0
@@ -206,7 +207,7 @@ class LeNet_5(nn.Module):
 
         with torch.no_grad():
             for images, labels in test_loader:
-                outputs = self.forward(images)
+                outputs = self(images)
                 # argmin, not argmax: the RBF layer returns distances, so smaller is better
                 predicted = torch.argmin(outputs, dim=1)
 
@@ -223,11 +224,11 @@ class LeNet_5(nn.Module):
 
         return accuracy
 
-    def predict(self, images):
+    def predict(self, images: torch.Tensor) -> torch.Tensor:
         """Gets a tensor of images and returns the guessed classes"""
         self.eval()  # Set the model to evaluation mode
         with torch.no_grad():
-            outputs = self.forward(images)
+            outputs = self(images)
             predicted_classes = torch.argmin(outputs, dim=1)
 
         return predicted_classes
@@ -237,21 +238,20 @@ class LeNet_5(nn.Module):
     # the script or notebook happens to be run from.
     DEFAULT_WEIGHTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lenet5_model.pth")
 
-    def save(self, path=None):
+    def save(self, path=None) -> None:
         """Saves the model's state dictionary to a file."""
-        import os
         path = path or self.DEFAULT_WEIGHTS
         # Ensure the directory exists before saving
-        dir_name = os.path.dirname(path)
+        dir_name: str = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
 
         torch.save(self.state_dict(), path)
         print(f"LeNet_5 model saved to {path}")
 
-    def load(self, path=None, device=None):
+    def load(self, path=None, device=None) -> None:
         """Loads the model's state dictionary from a file."""
-        path = path or self.DEFAULT_WEIGHTS
+        path: str = path or self.DEFAULT_WEIGHTS
         if device is None:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
