@@ -18,6 +18,7 @@ The point of the series is to go in more depth into the PyTorch framework and un
 │   ├── ...    
 │   └── ...    
 ├── src/            # model initialization code + weights
+│   ├── __init__.py
 │   ├── lenet5_model.pth
 │   └── model.py
 │
