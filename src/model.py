@@ -147,6 +147,10 @@ class LeNet_5(nn.Module):
 
         return output                              # Dimension: [batch_size, 10] of distances
 
+    """Added class method to check the total number of parameters of LeNet-5"""
+    def params(self):
+        return f"{sum(p.numel() for p in self.parameters())} total trainable parameters"
+        
     def _lenet_rbf_loss(self, distances: torch.Tensor, target_labels: torch.Tensor) -> torch.Tensor:
         """Private method for RBF loss computation. Computes the loss based on the distances between the model's output and the target labels."""
         batch_size = distances.size(0)
