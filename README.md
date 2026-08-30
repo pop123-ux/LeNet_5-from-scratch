@@ -195,18 +195,18 @@ The main limitations are:
 
 These are deliberate trade-offs for a small, readable educational repository whose primary purpose is understanding the architecture, tensor transformations, RBF output mechanism, and training process rather than reproducing the historical system exactly.
 
+## Lessons learned (informal)
+
+* The biggest thing I wanted to understand was **broadcasting**. The RBF output layer made that unavoidable: the F6 representation has shape [batch, 84], while the ten fixed digit centers have shape [10, 84]. Unsqueezing them into [batch, 1, 84] and [1, 10, 84] makes PyTorch broadcast the subtraction into [batch, 10, 84], after which the final reduction produces one distance for every class.
+* Working through the spatial dimensions was another useful exercise. The apparently arbitrary `32x32` input becomes much less arbitrary when tracing the network as `32 → 28 → 14 → 10 → 5 → 1`. Every dimension is forced by the next operation.
+* The project also made the difference between a **modern classification head** and **the original LeNet-5 output design** much clearer to me. Instead of ending with logits and a softmax, the network learns an 84-dimensional representation that is compared against fixed visual prototypes.
+
 ## Notes
 
 * `model.py` is a ground-up PyTorch reimplementation of the LeNet-5 architecture studied from the original 1998 paper. It is not intended to reproduce the original implementation byte-for-byte; instead, it makes the architectural and mathematical ideas explicit using modern PyTorch infrastructure.
 * The most deliberately preserved historical component is the **RBF output layer**: fixed 7x12 digit templates are stored as non-trainable buffers, the F6 representation is compared against them using squared Eucliden distance, and predictions are obtained with `argmin` rather than `argmax`
 * The custom RBF loss is implemented directly rather than replacing the original formulation with a conventional softmax classification loss.
 * `test.ipynb` showcases the dataset extraction & visualization, model training loop, loss evolution visualization using matplotlib, confusion matrix computation between the true labels and the predicted ones, a classification report to showcase precision, accuracy, recall and f1-score between the digit classes (from 0-9), and finally a live inference script to observe real sampling and prediction, results I personally find fascinating to say the least
-
-## Lessons learned (informal)
-
-* The biggest thing I wanted to understand was **broadcasting**. The RBF output layer made that unavoidable: the F6 representation has shape [batch, 84], while the ten fixed digit centers have shape [10, 84]. Unsqueezing them into [batch, 1, 84] and [1, 10, 84] makes PyTorch broadcast the subtraction into [batch, 10, 84], after which the final reduction produces one distance for every class.
-* Working through the spatial dimensions was another useful exercise. The apparently arbitrary `32x32` input becomes much less arbitrary when tracing the network as `32 → 28 → 14 → 10 → 5 → 1`. Every dimension is forced by the next operation.
-* The project also made the difference between a **modern classification head** and **the original LeNet-5 output design** much clearer to me. Instead of ending with logits and a softmax, the network learns an 84-dimensional representation that is compared against fixed visual prototypes.
 
 ## Credits
 ![Yann LeCun should be here!](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
