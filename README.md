@@ -1,6 +1,7 @@
-# LeNet_5-from-scratch
+# LeNet_5-from-scratch in PyTorch
 ![Architecture Image](IMAGES/LeNet-5_architecture.svg)
-My working in-depth implementation of Yann LeCun's Masterpiece: [**the LeNet-5 CNN that started it all**](https://en.wikipedia.org/wiki/LeNet). This is the first project from my Visual Scrambling series in which I reimplement from scratch the most influential classic architectures and ending with a unique visual model design written and designed by me.
+
+My working in-depth implementation of Yann LeCun's Masterpiece: [**the LeNet-5 CNN that started it all**](https://en.wikipedia.org/wiki/LeNet). This is the first project from my **Visual Scrambling** series in which I reimplement from scratch the most influential classic architectures and ending with a unique visual model design written and designed by me.
 
 The point of the series is to go in more depth into the PyTorch framework and understand most importantly the broadcasting part, since at the writing of this readme, that's what I find the most difficult. In addition to that, another goal of this series is to promote understanding by writing and not solely by reading, since in these days, some can become a little bit too inclined into asking the latest LLMs for understanding and for implementation, leaving gaps in understanding. That's even why I decided to leave the repo as it is in it's "naked form" (anyone can play with the model and change the class of the model or even add more methods if they feel like it, that's why I leave it in this kind of infant form, with a notebook for testing and a script for model initialization, which may feel a little bit unorthodox for some)
 
@@ -147,6 +148,30 @@ transforms.Normalize(mean=[0.1], std=[0.278])  # maps 0 -> -0.36, 1 -> +3.24
 
 Both target roughly zero mean and unit variance; the paper simply pins the two endpoints instead of deriving them from the data.
 
+## Experimental setup
+
+The setup used for the reported LeNet-5 experiment is documented below. The objective is to demonstrate the implemented architecture and its original-style RBF output mechanism on MNIST, rather than maximize the final test accuracy with moden optimization techniques.
+
+| | Category | Setting |
+| --- | --- |
+| Hardware | `CPU` |
+| Software | `Python, PyTorch, torchvision` |
+| Dataset | `MNIST` |
+| Input | `1x32x32` |
+| Epochs | `15` |
+| Batch size | `64` |
+| Optimizer | `SGD` |
+| Initial Learning Rate | `0.0005` |
+| Learning-rate schedule | `0.0005 → 0.0002 → 0.0001 → 0.00005 → 0.00001` |
+| Loss | `Custom LeNet-5 RBF loss` |
+| Activation | `Scaled tanh: 1.7159 · tanh(⅔x)` |
+| Output | `10 fixed Euclidean RBF centers` |
+| Checkpoint | `src/lenet5_model.pth` |
+
+The learning-rate schedule follows the staged values described in the original LeNet-5 work, while the optimizer itself is moden PyTorch SGD rather than the stochastic diagonal Levenberg-Marquardt method used in the historical implementation.
+
+Because at this current version the repository does not freeze every dependency version or record a complete deterministic seeding configuration for the published run, small numerical differences may occur when reproducing the experiment
+
 ### Results
 
 ![Sample predictions](IMAGES/test_visual_predictions.png)
@@ -157,10 +182,31 @@ The single accuracy figure is the least interesting output, though. [`test.ipynb
 
 For context, the paper reports 99.05% on MNIST — reached with the trainable subsampling, the C3 connection table and the second-order optimizer that this implementation deliberately simplifies. Landing slightly under it with those pieces removed is the expected outcome, and a more useful signal than chasing the number with modern tricks the paper never used.
 
+## Limitations
+
+This repository does not claim exact replication of the original 1998 LeNet-5 training system.
+
+The main limitations are:
+* The C3 layer uses full connectivity rather than the original sparse connection table.
+* The S2 and S4 layers use standard fixed average pooling rather than the trainable subsampling functions described in the paper.
+* The loss omits the small positive constant *j* appearing in the original formulation.
+* MNIST images are resized from *28x28* to *32x32*: the original preprocessing centred the original digit inside a *32x32* field.
+* Dependency versions are minimum-version specifications rather than a completely frozen environment
+
+These are deliberate trade-offs for a small, readable educational repository whose primary purpose is understanding the architecture, tensor transformations, RBF output mechanism, and training process rather than reproducing the historical system exactly.
+
 ## Notes
 
-* `model.py` follows the paper's implementation closely, but it is not a 1:1 reproduction — this is a learning repo, and the value is in the annotations and code writing and understanding of functionality, rather than rethinking outdated techniques of learning and optimization that do not apply to modern day CNN's (I say this even though I implemented some techniques from the original paper, such as the RBFSublayer, the [RBF loss computation](https://ieeexplore.ieee.org/document/9133368), and the custom decreasing learning rate over epochs)
+* `model.py` is a ground-up PyTorch reimplementation of the LeNet-5 architecture studied from the original 1998 paper. It is not intended to reproduce the original implementation byte-for-byte; instead, it makes the architectural and mathematical ideas explicit using modern PyTorch infrastructure.
+* The most deliberately preserved historical component is the **RBF output layer**: fixed 7x12 digit templates are stored as non-trainable buffers, the F6 representation is compared against them using squared Eucliden distance, and predictions are obtained with `argmin` rather than `argmax`
+* The custom RBF loss is implemented directly rather than replacing the original formulation with a conventional softmax classification loss.
 * `test.ipynb` showcases the dataset extraction & visualization, model training loop, loss evolution visualization using matplotlib, confusion matrix computation between the true labels and the predicted ones, a classification report to showcase precision, accuracy, recall and f1-score between the digit classes (from 0-9), and finally a live inference script to observe real sampling and prediction, results I personally find fascinating to say the least
+
+## Lessons learned (informal)
+
+* The biggest thing I wanted to understand was **broadcasting**. The RBF output layer made that unavoidable: the F6 representation has shape [batch, 84], while the ten fixed digit centers have shape [10, 84]. Unsqueezing them into [batch, 1, 84] and [1, 10, 84] makes PyTorch broadcast the subtraction into [batch, 10, 84], after which the final reduction produces one distance for every class.
+* Working through the spatial dimensions was another useful exercise. The apparently arbitrary `32x32` input becomes much less arbitrary when tracing the network as `32 → 28 → 14 → 10 → 5 → 1`. Every dimension is forced by the next operation.
+* The project also made the difference between a **modern classification head** and **the original LeNet-5 output design** much clearer to me. Instead of ending with logits and a softmax, the network learns an 84-dimensional representation that is compared against fixed visual prototypes.
 
 ## Credits
 ![Yann LeCun should be here!](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
