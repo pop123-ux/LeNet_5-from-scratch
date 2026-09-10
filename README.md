@@ -1,4 +1,9 @@
-# LeNet_5-from-scratch in PyTorch
+# LeNet_5-from-scratch in PyTorch #
+<img width="1672" height="941" alt="ChatGPT Image Sep 10, 2026, 09_28_53 PM" src="https://github.com/user-attachments/assets/8238726c-38dc-49d2-8aa1-c514df83cd9b" />
+
+- - -
+
+# The Architecture: #
 ![Architecture Image](IMAGES/LeNet-5_architecture.svg)
 
 My working in-depth implementation of Yann LeCun's Masterpiece: [**the LeNet-5 CNN that started it all**](https://en.wikipedia.org/wiki/LeNet). This is the first project from my **Visual Scrambling** series in which I reimplement from scratch the most influential classic architectures and ending with a unique visual model design written and designed by me.
