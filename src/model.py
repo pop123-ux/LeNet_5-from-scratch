@@ -170,7 +170,6 @@ class LeNet_5(nn.Module):
         optimizer = torch.optim.SGD(self.parameters(), lr=0.0005)
 
         for epoch in range(epochs):
-            self.train()
             print(f"Epoch: {epoch}")
             # The learning rate schedule is the one reported in the original LeNet-5 paper:
             # 0.0005 for the first two passes, then 0.0002, 0.0001, 0.00005 and 0.00001.
