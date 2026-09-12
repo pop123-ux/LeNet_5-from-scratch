@@ -1,4 +1,6 @@
 # LeNet_5-from-scratch in PyTorch #
+[![Tests](https://github.com/pop123-ux/LeNet_5-from-scratch/actions/workflows/tests.yml/badge.svg)](https://github.com/pop123-ux/LeNet_5-from-scratch/actions/workflows/tests.yml)
+
 <img width="1672" height="941" alt="ChatGPT Image Sep 10, 2026, 09_28_53 PM" src="https://github.com/user-attachments/assets/8238726c-38dc-49d2-8aa1-c514df83cd9b" />
 
 - - -
@@ -13,30 +15,34 @@ The point of the series is to go in more depth into the PyTorch framework and un
 ## Layout
 
 ```
-├── IMAGES
-│   ├── Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg # photo of Yann LeCun    
-│   ├── LeNet-5_architecture.svg # image of the LeNet-5 architecture    
-│   ├── MNIST_dataset_example.png # image of MNIST dataset label examples
-│   └── test_visual_predictions.png # model inference snippet output example
+├── .github/
+│   └── workflows/
+│       └── tests.yml              # CPU-only pytest CI on pushes and pull requests
 │
-├── data/MNIST/raw (basic boilerplate torchvision MNIST import baseline)
-│   ├── ...    
-│   ├── ...    
-│   └── ...    
-├── src/            # model initialization code + weights
+├── IMAGES/
+│   ├── Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg
+│   ├── LeNet-5_architecture.svg
+│   ├── MNIST_dataset_example.png
+│   └── test_visual_predictions.png
+│
+├── checkpoints/
+│   └── lenet5_mnist.pth           # trained MNIST state_dict
+│
+├── src/
 │   ├── __init__.py
-│   ├── lenet5_model.pth
-│   └── model.py
+│   └── model.py                   # architecture, RBF layer, training/evaluation and checkpoint API
 │
-├── LICENSE # the MIT License of the project
+├── tests/
+│   └── test_model.py              # model, RBF, gradient and checkpoint-path smoke tests
 │
-├── README.md           # the repository's showcase
-│
-├── requirements.txt
-│
-├── test.ipynb # model training + loss visualization + confusion matrix & classification report computation + live inference snippet
-
+├── .gitignore
+├── LICENSE
+├── pyproject.toml                 # project and development dependencies
+├── README.md
+└── test.ipynb                     # MNIST training, metrics and live inference experiment
 ```
+
+`data/MNIST/raw/` is created locally by `torchvision.datasets.MNIST` when the notebook downloads MNIST; it is runtime data rather than a tracked repository artifact.
 
 ## The architecture
 
@@ -155,9 +161,9 @@ Both target roughly zero mean and unit variance; the paper simply pins the two e
 
 ## Experimental setup
 
-The setup used for the reported LeNet-5 experiment is documented below. The objective is to demonstrate the implemented architecture and its original-style RBF output mechanism on MNIST, rather than maximize the final test accuracy with moden optimization techniques.
+The setup used for the reported LeNet-5 experiment is documented below. The objective is to demonstrate the implemented architecture and its original-style RBF output mechanism on MNIST, rather than maximize the final test accuracy with modern optimization techniques.
 
-| | Category | Setting |
+| Category | Setting |
 | --- | --- |
 | Hardware | `CPU` |
 | Software | `Python, PyTorch, torchvision` |
@@ -171,11 +177,35 @@ The setup used for the reported LeNet-5 experiment is documented below. The obje
 | Loss | `Custom LeNet-5 RBF loss` |
 | Activation | `Scaled tanh: 1.7159 · tanh(⅔x)` |
 | Output | `10 fixed Euclidean RBF centers` |
-| Checkpoint | `src/lenet5_model.pth` |
+| Checkpoint | `checkpoints/lenet5_mnist.pth` |
 
-The learning-rate schedule follows the staged values described in the original LeNet-5 work, while the optimizer itself is moden PyTorch SGD rather than the stochastic diagonal Levenberg-Marquardt method used in the historical implementation.
+The learning-rate schedule follows the staged values described in the original LeNet-5 work, while the optimizer itself is modern PyTorch SGD rather than the stochastic diagonal Levenberg-Marquardt method used in the historical implementation.
 
-Because at this current version the repository does not freeze every dependency version or record a complete deterministic seeding configuration for the published run, small numerical differences may occur when reproducing the experiment
+Because at this current version the repository does not freeze every dependency version or record a complete deterministic seeding configuration for the published run, small numerical differences may occur when reproducing the experiment.
+
+### Pretrained checkpoint
+
+The state dictionary produced by the recorded MNIST experiment is stored at `checkpoints/lenet5_mnist.pth`. The model's default `save()` and `load()` methods resolve to that root-level checkpoint directory:
+
+```python
+from src import LeNet_5
+
+model = LeNet_5()
+model.load()
+model.eval()
+```
+
+### Automated tests and CI
+
+`tests/test_model.py` checks the LeNet-5 forward pass, RBF bitmap values, fixed-center buffer registration, non-negative RBF distances, gradient propagation, argmin-based prediction behavior, parameter reporting, and the default checkpoint path. It uses random tensors only—no MNIST download and no training loop.
+
+Run it locally with:
+
+```bash
+python -m pytest tests -q
+```
+
+The same test command runs automatically in GitHub Actions on pushes and pull requests to `main`. The badge at the top of this README reflects the latest workflow result.
 
 ### Results
 
@@ -196,7 +226,7 @@ The main limitations are:
 * The S2 and S4 layers use standard fixed average pooling rather than the trainable subsampling functions described in the paper.
 * The loss omits the small positive constant *j* appearing in the original formulation.
 * MNIST images are resized from *28x28* to *32x32*: the original preprocessing centred the original digit inside a *32x32* field.
-* Dependency versions are minimum-version specifications rather than a completely frozen environment
+* Dependency versions are minimum-version specifications rather than a completely frozen environment.
 
 These are deliberate trade-offs for a small, readable educational repository whose primary purpose is understanding the architecture, tensor transformations, RBF output mechanism, and training process rather than reproducing the historical system exactly.
 
@@ -209,9 +239,9 @@ These are deliberate trade-offs for a small, readable educational repository who
 ## Notes
 
 * `model.py` is a ground-up PyTorch reimplementation of the LeNet-5 architecture studied from the original 1998 paper. It is not intended to reproduce the original implementation byte-for-byte; instead, it makes the architectural and mathematical ideas explicit using modern PyTorch infrastructure.
-* The most deliberately preserved historical component is the **RBF output layer**: fixed 7x12 digit templates are stored as non-trainable buffers, the F6 representation is compared against them using squared Eucliden distance, and predictions are obtained with `argmin` rather than `argmax`
+* The most deliberately preserved historical component is the **RBF output layer**: fixed 7x12 digit templates are stored as non-trainable buffers, the F6 representation is compared against them using squared Euclidean distance, and predictions are obtained with `argmin` rather than `argmax`.
 * The custom RBF loss is implemented directly rather than replacing the original formulation with a conventional softmax classification loss.
-* `test.ipynb` showcases the dataset extraction & visualization, model training loop, loss evolution visualization using matplotlib, confusion matrix computation between the true labels and the predicted ones, a classification report to showcase precision, accuracy, recall and f1-score between the digit classes (from 0-9), and finally a live inference script to observe real sampling and prediction, results I personally find fascinating to say the least
+* `test.ipynb` showcases the dataset extraction & visualization, model training loop, loss evolution visualization using matplotlib, confusion matrix computation between the true labels and the predicted ones, a classification report to showcase precision, accuracy, recall and f1-score between the digit classes (from 0-9), and finally a live inference script to observe real sampling and prediction.
 
 ## Credits
 ![Yann LeCun should be here!](IMAGES/Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg) 
