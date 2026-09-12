@@ -170,6 +170,7 @@ class LeNet_5(nn.Module):
         optimizer = torch.optim.SGD(self.parameters(), lr=0.0005)
 
         for epoch in range(epochs):
+            self.train()
             print(f"Epoch: {epoch}")
             # The learning rate schedule is the one reported in the original LeNet-5 paper:
             # 0.0005 for the first two passes, then 0.0002, 0.0001, 0.00005 and 0.00001.
@@ -238,9 +239,13 @@ class LeNet_5(nn.Module):
         return predicted_classes
 
     # Saving and loading the model's state dictionary to/from a file for later use.
-    # The default path sits next to this file, so it does not depend on the directory
-    # the script or notebook happens to be run from.
-    DEFAULT_WEIGHTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lenet5_model.pth")
+    # The default checkpoint lives at repository_root/checkpoints so trained artifacts
+    # stay separate from source code.
+    DEFAULT_WEIGHTS = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "checkpoints",
+        "lenet5_mnist.pth",
+    )
 
     def save(self, path=None) -> None:
         """Saves the model's state dictionary to a file."""
